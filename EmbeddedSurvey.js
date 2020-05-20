@@ -350,10 +350,6 @@
 		}
 	}
 
-	function recordResponse( response ) {
-		// TODO
-	}
-
 	function shouldDisplay() {
 		if ( mw.util.getParamValue( 'forcesurvey' ) ) {
 			return true;
