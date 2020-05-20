@@ -143,39 +143,14 @@
 				mw.eventLog.logEvent( 'QuickSurveyInitiation', event );
 			},
 			/**
-			 * Shuffle answers in place
-			 *
-			 * @param {Array} [answers] answers coming from configuration
-			 * @return {Array} shuffled answers
-			 */
-			shuffleAnswers: function ( answers ) {
-				var counter = answers.length,
-					i, temp;
-
-				while ( counter > 0 ) {
-					i = Math.floor( Math.random() * counter );
-
-					counter--;
-
-					temp = answers[ counter ];
-					answers[ counter ] = answers[ i ];
-					answers[ i ] = temp;
-				}
-
-				return answers;
-			},
-			/**
 			 * Render and append buttons (and a freeform input if set) to
 			 * the initial panel
 			 */
 			renderButtons: function () {
 				var $btnContainer = this.initialPanel.$element.find( '.survey-button-container' ),
 					answers = this.config.survey.answers,
-					freeformTextLabel = this.config.survey.freeformTextLabel,
-					buttonSelect,
 					answerCheckboxes,
 					answerOptions,
-					freeformInput,
 					submitButton;
 
 				answerOptions = answers.map( function ( answer ) {
@@ -198,7 +173,7 @@
 				submitButton.$element.appendTo( $btnContainer );
 
 				submitButton.connect( this, {
-					click: [ 'onClickSubmitButton', answerCheckboxes, freeformInput ]
+					click: [ 'onClickSubmitButton', answerCheckboxes ]
 				} );
 			},
 			/**
@@ -259,61 +234,18 @@
 					userLanguage: mw.config.get( 'wgContentLanguage' ),
 					isLoggedIn: !mw.user.isAnon(),
 					editCountBucket: utils.getEditCountBucket( mw.config.get( 'wgUserEditCount' ) ),
-					countryCode: utils.getCountryCode()
+					countryCode: 'Unknown'
 				} );
 			},
 
 			/**
-			 * Fired when one of the options are clicked.
-			 *
-			 * @param {OO.ui.ButtonOptionWidget|OO.ui.ButtonWidget} btn
+			 * @param {OO.ui.CheckboxMultiselectInputWidget} checkboxes
 			 * @private
 			 */
-			submitAnswerButton: function ( btn ) {
-				this.submit( btn.data.answer );
-			},
+			onClickSubmitButton: function ( checkboxes ) {
+				var selections = checkboxes.getValue();
 
-			/**
-			 * Unselect the selected answer button
-			 *
-			 * @param {jQuery.event} event
-			 * @private
-			 */
-			resetAnswerButton: function ( event ) {
-				event.data.buttonSelect.unselectItem();
-			},
-
-			/**
-			 * Clear the free form input text and focus out of it
-			 *
-			 * @param {OO.ui.MultilineTextInputWidget} freeformInput
-			 * @private
-			 */
-			resetFreeformInput: function ( freeformInput ) {
-				freeformInput.setValue( '' );
-				freeformInput.blur();
-			},
-
-			/**
-			 * Get the user answer either from the answer buttons or free
-			 * form text and submit
-			 *
-			 * @param {OO.ui.ButtonSelectWidget} buttonSelect
-			 * @param {OO.ui.MultilineTextInputWidget} freeformInput
-			 * @private
-			 */
-			onClickSubmitButton: function ( buttonSelect, freeformInput ) {
-				var selectedButton = buttonSelect.findSelectedItem(),
-					freeformInputValue = freeformInput.getValue().trim();
-
-				if ( selectedButton ) {
-					this.submit( selectedButton.data.answer );
-				} else if ( freeformInputValue ) {
-					this.submit( freeformInputValue );
-				} else {
-					// eslint-disable-next-line no-alert
-					alert( mw.msg( 'ext-quicksurveys-internal-freeform-survey-no-answer-alert' ) );
-				}
+				this.submit( selections.join(',') );
 			},
 
 			/**
