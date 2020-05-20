@@ -9,12 +9,12 @@
 		surveys: {
 			"prototype-1": {
 				injectInto: '#survey-inject-1',
-				question: 'question-message',
-				description: 'description-message',
+				question: 'wmde-tw-template-survey-prototype1-question',
+				description: 'wmde-tw-template-survey-prototype1-description-message',
 				answers: [
-					'answer-1-message',
-					'answer-2-message',
-					'answer--message3'
+					'wmde-tw-template-survey-prototype1-answer-1a',
+					'wmde-tw-template-survey-prototype1-answer-1b',
+					'wmde-tw-template-survey-prototype1-answer-1c'
 				]
 			}
 		}
