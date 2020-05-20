@@ -346,7 +346,8 @@
 				isMobileLayout: isMobileLayout
 			} );
 
-			root.replaceWith( panel.$element );
+			// TODO: Move inline CSS to an external stylesheet.
+			root.replaceWith( panel.$element.css( 'float', 'none' ) );
 		}
 	}
 
@@ -392,5 +393,6 @@
 		if ( shouldDisplay() ) {
 			init();
 		}
+		// TODO: else, show placeholder and optional reason.
 	} );
 } )();
