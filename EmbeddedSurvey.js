@@ -6,6 +6,9 @@
  *     {{int:wmde-tw-template-survey-nojs-notice}}
  *   </div>
  *
+ * Use the URL query parameter "?forcesurvey=true" to show the survey regardless of your Do Not Track setting and
+ * any previously submitted responses.
+ *
  * TODO:
  *  - Move EmbeddedSurvey into module file.
  *  - Provide surveys in mediawiki-config or on-wiki.
@@ -13,9 +16,10 @@
  */
 ( function () {
 	var surveyConfig = {
-		surveys: {
-			"prototype-1": {
+		surveys: [
+			{
 				injectInto: '#survey-inject-1',
+				name: "wmde-tw-template-survey-prototype-1",
 				question: 'wmde-tw-template-survey-prototype1-question',
 				description: 'wmde-tw-template-survey-prototype1-description-message',
 				answers: [
@@ -24,7 +28,7 @@
 					'wmde-tw-template-survey-prototype1-answer-1c'
 				]
 			}
-		}
+		]
 	};
 
 	/**
@@ -39,6 +43,41 @@
 		for ( key in mixin ) {
 			target[ key ] = mixin[ key ];
 		}
+	}
+
+	/**
+	 * Get edit count bucket name, based on the number of edits made.
+	 *
+	 * @param {number|null} editCount
+	 * @return {string}
+	 */
+	function getEditCountBucket( editCount ) {
+		if ( editCount >= 1000 ) {
+			return '1000+ edits';
+		}
+		if ( editCount >= 100 ) {
+			return '100-999 edits';
+		}
+		if ( editCount >= 5 ) {
+			return '5-99 edits';
+		}
+		if ( editCount >= 1 ) {
+			return '1-4 edits';
+		}
+		return '0 edits';
+	}
+
+	function getSurveyStorageKey( name ) {
+		return 'wmde-tw-survey-' + name.replace( / /g, '-' );
+	}
+
+	function getSurveyToken( name ) {
+		return mw.storage.get( getSurveyStorageKey( name ) );
+	}
+
+	function setSurveyToken( name, token ) {
+		var storageId = getSurveyStorageKey( name );
+		mw.storage.set( storageId, token );
 	}
 
 	function show() {
@@ -85,7 +124,7 @@
 			 */
 			defaults: {
 				templateData: {
-					finalHeading: mw.msg( 'ext-quicksurveys-survey-confirm-msg' ),
+					finalHeading: mw.msg( 'wmde-tw-survey-thank-you-notice' ),
 					footer: mw.message( 'ext-quicksurveys-survey-privacy-policy-default-text' ).parse()
 				},
 				PanelLayout: {
@@ -233,7 +272,7 @@
 					isTablet: !this.config.isMobileLayout,
 					userLanguage: mw.config.get( 'wgContentLanguage' ),
 					isLoggedIn: !mw.user.isAnon(),
-					editCountBucket: utils.getEditCountBucket( mw.config.get( 'wgUserEditCount' ) ),
+					editCountBucket: getEditCountBucket( mw.config.get( 'wgUserEditCount' ) ),
 					countryCode: 'Unknown'
 				} );
 			},
@@ -263,13 +302,26 @@
 			}
 		} );
 
-		for ( var name in surveyConfig.surveys ) {
-			var survey = surveyConfig.surveys[name];
-			var root = $( survey.injectInto );
-			var isMobileLayout = window.innerWidth <= 768;
+		for ( var survey of surveyConfig.surveys ) {
+			var root = $( survey.injectInto ),
+				isMobileLayout = window.innerWidth <= 768,
+				userToken = getSurveyToken( survey.name );
 
 			if ( !root.length ) {
 				continue;
+			}
+
+			if ( userToken === '~' &&
+				!mw.util.getParamValue( 'forcesurvey' )
+			) {
+				root.html( mw.msg( 'wmde-tw-survey-thank-you-notice' ) );
+			    continue;
+			}
+
+			if ( !userToken ) {
+				// Generate a new token for each survey
+				userToken = mw.user.generateRandomSessionId();
+				setSurveyToken( survey.name, userToken );
 			}
 
 			var panel = new EmbeddedSurvey( {
@@ -285,6 +337,9 @@
 				isMobileLayout: isMobileLayout
 			} );
 
+			panel.on( 'dismiss', function () {
+				setSurveyToken( survey.name, '~' );
+			} );
 			// TODO: Move inline CSS to an external stylesheet.
 			root.replaceWith( panel.$element.css( 'float', 'none' ) );
 		}
@@ -303,7 +358,7 @@
 			/1|yes/.test( navigator.doNotTrack ) ||
 			window.doNotTrack === '1'
 		) {
-			return false;
+			return 'wmde-tw-template-survey-dnt-notice';
 		}
 
 		return true;
@@ -328,9 +383,18 @@
 		);
 	}
 
+	function showNotice( message ) {
+		$( '.wmde-tw-template-survey-container' )
+			.html( mw.msg( message ) );
+	}
+
 	$( function () {
-		if ( shouldDisplay() ) {
+	    var isDisplayed = shouldDisplay();
+
+		if ( isDisplayed === true ) {
 			init();
+		} else {
+			showNotice( isDisplayed );
 		}
 		// TODO: else, show placeholder and optional reason.
 	} );
