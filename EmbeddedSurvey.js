@@ -170,9 +170,6 @@
 					freeformInput,
 					submitButton;
 
-				if ( this.config.survey.shuffleAnswersDisplay ) {
-					answers = this.shuffleAnswers( answers );
-				}
 
 				answerButtons = answers.map( function ( answer ) {
 					return new OO.ui.ButtonOptionWidget( {
