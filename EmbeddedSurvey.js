@@ -166,56 +166,33 @@
 					answers = this.config.survey.answers,
 					freeformTextLabel = this.config.survey.freeformTextLabel,
 					buttonSelect,
-					answerButtons,
+					answerCheckboxes,
+					answerOptions,
 					freeformInput,
 					submitButton;
 
-
-				answerButtons = answers.map( function ( answer ) {
-					return new OO.ui.ButtonOptionWidget( {
-						// eslint-disable-next-line mediawiki/msg-doc
-						label: mw.msg( answer ),
-						data: {
-							answer: answer
-						}
-					} );
+				answerOptions = answers.map( function ( answer ) {
+					return {
+						data: answer,
+						label: mw.msg( answer )
+					};
+				} );
+				answerCheckboxes = new OO.ui.CheckboxMultiselectInputWidget( {
+					// eslint-disable-next-line mediawiki/msg-doc
+					options: answerOptions
 				} );
 
-				buttonSelect = new OO.ui.ButtonSelectWidget( {
-					items: answerButtons
+				answerCheckboxes.$element.appendTo( $btnContainer );
+
+				submitButton = new OO.ui.ButtonWidget( {
+					label: mw.msg( 'ext-quicksurveys-internal-freeform-survey-submit-button' ),
+					flags: 'progressive'
 				} );
-				buttonSelect.$element.appendTo( $btnContainer );
+				submitButton.$element.appendTo( $btnContainer );
 
-				if ( freeformTextLabel ) {
-					freeformInput = new OO.ui.MultilineTextInputWidget( {
-						// eslint-disable-next-line mediawiki/msg-doc
-						placeholder: mw.msg( freeformTextLabel ),
-						multiline: true,
-						autosize: true,
-						maxRows: 5
-					} );
-					freeformInput.$element.appendTo( $btnContainer );
-
-					submitButton = new OO.ui.ButtonWidget( {
-						label: mw.msg( 'ext-quicksurveys-internal-freeform-survey-submit-button' ),
-						flags: 'progressive'
-					} );
-					submitButton.$element.appendTo( $btnContainer );
-
-					buttonSelect.connect( this, {
-						choose: [ 'resetFreeformInput', freeformInput ]
-					} );
-					freeformInput.$input.on( 'focus', {
-						buttonSelect: buttonSelect
-					}, this.resetAnswerButton );
-					submitButton.connect( this, {
-						click: [ 'onClickSubmitButton', buttonSelect, freeformInput ]
-					} );
-				} else {
-					buttonSelect.connect( this, {
-						choose: 'submitAnswerButton'
-					} );
-				}
+				submitButton.connect( this, {
+					click: [ 'onClickSubmitButton', answerCheckboxes, freeformInput ]
+				} );
 			},
 			/**
 			 * Make a brand spanking new OOUI widget from a template partial
