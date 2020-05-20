@@ -9,10 +9,12 @@
  * Use the URL query parameter "?forcesurvey=true" to show the survey regardless of your Do Not Track setting and
  * any previously submitted responses.
  *
+ * Responses are submitted to the QuickSurveysResponses EventLogging schema, with "answer" set to a comma-separated
+ * list of the answer messages the user selected.
+ *
  * TODO:
  *  - Move EmbeddedSurvey into module file.
  *  - Provide surveys in mediawiki-config or on-wiki.
- *  - Try to keep our config structure compatible with QuickSurveys, in case we can upstream EmbeddedSurvey to that extension.
  */
 ( function () {
 	var surveyConfig = {
