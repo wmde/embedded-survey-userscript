@@ -1,4 +1,11 @@
 /*
+ * Create an injectable element where you want the survey to appear, and include survey configuration with
+ * an `injectInto` selecting this element.  The element will be replaced when the survey is displayed.
+ *
+ *   <div id="survey-inject-1" class="wmde-tw-template-survey-container" style="padding: 12px 16px 16px; background-color: #eaecf0;">
+ *     {{int:wmde-tw-template-survey-nojs-notice}}
+ *   </div>
+ *
  * TODO:
  *  - Move EmbeddedSurvey into module file.
  *  - Provide surveys in mediawiki-config or on-wiki.
